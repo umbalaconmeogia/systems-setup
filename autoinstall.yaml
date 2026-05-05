@@ -1,0 +1,83 @@
+#cloud-config
+autoinstall:
+  version: 1
+  interactive-sections:
+    - storage # Dừng lại ở phần storage để bạn xác nhận và nhập mật khẩu LUKS
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  timezone: Asia/Tokyo
+  identity:
+    realname: thanh_tt
+    username: thanh_tt
+    hostname: DTMPC-001
+    # Password này dùng cho Login vào OS (đã hash)
+    password: "$6$exS6SOf6S9S8S9S8$6E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8"
+  storage:
+    config:
+      # 1. Khai báo ổ cứng vật lý
+      - type: disk
+        id: disk-sda
+        match:
+          id: ata-CT1000MX500SSD1_2112E58BD5DB
+        ptable: gpt
+        preserve: false
+
+      # 2. Phân vùng EFI (1GB)
+      - type: partition
+        id: partition-efi
+        device: disk-sda
+        size: 1G
+        flag: boot
+      - type: format
+        id: format-efi
+        fstype: vfat
+        volume: partition-efi
+      - type: mount
+        id: mount-efi
+        device: format-efi
+        path: /boot/efi
+
+      # 3. Phân vùng Root / (200GB - Không mã hóa)
+      - type: partition
+        id: partition-root
+        device: disk-sda
+        size: 200G
+      - type: format
+        id: format-root
+        fstype: ext4
+        volume: partition-root
+      - type: mount
+        id: mount-root
+        device: format-root
+        path: /
+
+      # 4. Phân vùng Home (700GB - Mã hóa LUKS)
+      # Lưu ý: Tổng EFI(1) + Root(200) + Home(700) = 901GB. 
+      # Khoảng 100GB còn lại sẽ tự động để trống (Unallocated).
+      - type: partition
+        id: partition-home
+        device: disk-sda
+        size: 700G
+      - type: dm_crypt
+        id: luks-home
+        volume: partition-home
+        # Chế độ interactive sẽ ghi đè mật khẩu bạn nhập lúc cài
+      - type: format
+        id: format-home
+        fstype: ext4
+        volume: luks-home
+      - type: mount
+        id: mount-home
+        device: format-home
+        path: /home
+
+  ssh:
+    install-server: true
+    allow-pw: true
+  packages:
+    - curl
+    - git
+    - build-essential
+  user-data:
+    package_upgrade: true
