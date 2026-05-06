@@ -1,34 +1,32 @@
 #cloud-config
 autoinstall:
   version: 1
-  interactive-sections:
-    - storage # Dừng lại ở phần storage để bạn xác nhận và nhập mật khẩu LUKS
+  early-commands:
+    - swapoff -a
   locale: en_US.UTF-8
   keyboard:
-    layout: us
+    layout: jp
   timezone: Asia/Tokyo
   identity:
     realname: thanh_tt
     username: thanh_tt
     hostname: DTMPC-001
-    # Password này dùng cho Login vào OS (đã hash)
-    password: "$6$exS6SOf6S9S8S9S8$6E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8f8E8"
+    password: "$6$HNsGefkmZ6sgIF4S$E9tFAXjxa9wMfytOn7GiYBvGnzb8xrHyei0hYM2ahddlqlW58J/FfQuX7mocw7/Kkyk2gBsIoAlr/W0lPtu441"
   storage:
     config:
-      # 1. Khai báo ổ cứng vật lý
       - type: disk
-        id: disk-sda
+        id: disk-ssd
         match:
-          id: ata-CT1000MX500SSD1_2112E58BD5DB
+          serial: "YOUR SSD SERIAL HERE"
         ptable: gpt
         preserve: false
-
-      # 2. Phân vùng EFI (1GB)
+        wipe: superblock-recursive
       - type: partition
         id: partition-efi
-        device: disk-sda
-        size: 1G
+        device: disk-ssd
+        size: 1024M
         flag: boot
+        grub_device: true
       - type: format
         id: format-efi
         fstype: vfat
@@ -37,11 +35,9 @@ autoinstall:
         id: mount-efi
         device: format-efi
         path: /boot/efi
-
-      # 3. Phân vùng Root / (200GB - Không mã hóa)
       - type: partition
         id: partition-root
-        device: disk-sda
+        device: disk-ssd
         size: 200G
       - type: format
         id: format-root
@@ -51,18 +47,15 @@ autoinstall:
         id: mount-root
         device: format-root
         path: /
-
-      # 4. Phân vùng Home (700GB - Mã hóa LUKS)
-      # Lưu ý: Tổng EFI(1) + Root(200) + Home(700) = 901GB. 
-      # Khoảng 100GB còn lại sẽ tự động để trống (Unallocated).
       - type: partition
         id: partition-home
-        device: disk-sda
-        size: 700G
+        device: disk-ssd
+        size: 630G
       - type: dm_crypt
         id: luks-home
         volume: partition-home
-        # Chế độ interactive sẽ ghi đè mật khẩu bạn nhập lúc cài
+        preserve: false
+        key: "YOUR SSD PASSWORD HERE"
       - type: format
         id: format-home
         fstype: ext4
@@ -71,13 +64,6 @@ autoinstall:
         id: mount-home
         device: format-home
         path: /home
-
   ssh:
     install-server: true
     allow-pw: true
-  packages:
-    - curl
-    - git
-    - build-essential
-  user-data:
-    package_upgrade: true
