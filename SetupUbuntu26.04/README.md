@@ -1,15 +1,17 @@
-# Install Ubuntu Desktop 26.04
+[English](README.md) | [Tiếng Việt](README.vi.md) | [日本語](README.ja.md)
+
+# Install Ubuntu 26.04
 
 ## Overview
 
-This document is a note about installing Ubuntu 26.04 OS and applications on a local PC.
+This document is a note about installing Ubuntu 26.04 (both Desktop and Server version) OS and applications on a local PC.
 
 * Install OS with hard disk encrypted.
 * Install applications and set up.
 
 ## Install OS with hard disk encrypted
 
-Install Ubuntu Desktop automatically using **autoinstall.yaml**.
+Install Ubuntu automatically using **autoinstall.yaml**.
 
 * Using autoinstall.yaml is a difficult experience. I ended up with a minimal configuration.
 * Autoinstall on Ubuntu 26.04 is different from on Ubuntu 24.04.
@@ -31,4 +33,4 @@ To use this autoinstall.yaml, you must set 3 values:
 
 ## Install applications and setup
 
-Refer to SetupUbuntu26.04.md for notes on setting up the Ubuntu 26.04 environment.
+Refer to [SetupUbuntu26.04.md](SetupUbuntu26.04.md) for notes on setting up the Ubuntu 26.04 environment.
