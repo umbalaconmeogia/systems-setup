@@ -39,7 +39,6 @@ graph TD
             WinOS --> Cursor[Cursor IDE + Remote-SSH]
             WinOS --> Antigravity[Antigravity / AI Tools]
             WinOS --> Browser[Web Browser]
-            WinOS --> Obsidian[Obsidian]
         end
         
         subgraph "Client Node 2: Smartphone"
@@ -61,46 +60,32 @@ graph TD
 * **Client Node 1 (HP Windows 11):** Đóng vai trò là Terminal/Thin-Client. IDE (Cursor) được chạy tại đây, nhưng memory/CPU tiêu thụ thực tế nằm hoàn toàn trên Worker Node. Nhờ Remote-SSH, thao tác dev vẫn mượt mà dù máy client bị giới hạn phần cứng (16GB RAM, không thể nâng cấp).
 * **Client Node 2 (Smartphone):** Dùng để truy cập SSH khẩn cấp (Termius) hoặc theo dõi, phê duyệt (approve) các workflow tự động qua Web UI của n8n khi đang đi ngoài đường.
 
-## Installation & Configuration Guide
+## Thành phần Phần mềm (Software Components)
+
+Dưới đây là danh sách các phần mềm và công cụ cốt lõi được triển khai trên từng thiết bị để kiến tạo nên hệ thống này:
 
 ### 1. Trên Worker Node (Ubuntu Server 26.04)
-
-**1.1. Cấu hình chống ngủ đông (Prevent Sleep on Lid Close)**
-Mặc định khi gập màn hình, laptop có thể bị sleep bởi systemd. Cần cấu hình `systemd-logind`:
-```bash
-sudo nano /etc/systemd/logind.conf
-# Tìm và cấu hình các giá trị sau thành ignore:
-# HandleLidSwitch=ignore
-# HandleLidSwitchExternalPower=ignore
-# HandleLidSwitchDocked=ignore
-
-# Sau đó khởi động lại service
-sudo systemctl restart systemd-logind.service
-```
-*(Lưu ý: Nếu sau khi cấu hình máy vẫn sleep, cần truy cập BIOS Lenovo để vô hiệu hóa tính năng tương tự).*
-
-**1.2. Cài đặt các công cụ nền tảng**
-* **OpenSSH Server:** Cần thiết để Client SSH vào.
-* **Tailscale:** Mạng VPN riêng tư kết nối các thiết bị an toàn mà không cần mở port ra ngoài Internet.
-* **Docker & Docker Compose:** Nền tảng chạy container cho n8n và các services khác, giúp quản lý gọn gàng.
-* **Môi trường Dev:** Git, Node.js, Python.
-
-**1.3. Cài đặt AI & Automation**
-* **Claude CLI / Claude Code:** Cài đặt thông qua npm để thao tác với AI trên terminal.
-* **n8n:** Triển khai bằng Docker Compose (publish port 5678).
-
-*(Lưu ý: Cursor Server không cần cài thủ công. Khi Client dùng Cursor kết nối SSH vào, IDE sẽ tự động cài đặt Cursor Server trên Lenovo).*
+* **OpenSSH Server:** Cho phép máy Client kết nối điều khiển từ xa an toàn.
+* **Tailscale:** Mạng VPN riêng tư, giúp kết nối các thiết bị mọi lúc mọi nơi mà không cần mở port Router.
+* **Docker & Docker Compose:** Nền tảng chạy container, giúp quản lý n8n và các services khác một cách cô lập, sạch sẽ.
+* **Môi trường Dev (Git, Node.js, Python):** Cung cấp runtime tiêu chuẩn cho việc lập trình hệ thống.
+* **Claude CLI / Claude Code:** Công cụ thao tác với AI trực tiếp từ terminal.
+* **n8n:** Nền tảng tự động hóa (automation) chạy 24/7.
+* **Cursor Server:** Xử lý toàn bộ logic tính toán, index file (tự động cài khi kết nối Remote-SSH).
 
 ### 2. Trên Client Node 1 (Windows PC - HP)
-
-* **Tailscale:** Tham gia vào mạng VPN cùng Worker Node.
-* **Cursor IDE:** Cài Extension `Remote - SSH`. Kết nối SSH tới IP Tailscale của Worker Node. Toàn bộ trải nghiệm code diễn ra tại đây.
-* **Antigravity / Claude Code:** Cài trên Windows để điều khiển Worker Node.
-* **Trình duyệt web:** Truy cập `http://<Tailscale_IP_Lenovo>:5678` để quản lý giao diện n8n.
-* **Obsidian:** Chạy local trên Windows để làm Knowledge Base cho dự án One-Person Company (có thể tích hợp Claude sau).
+* **Tailscale:** Tham gia vào mạng VPN cùng với Worker Node.
+* **Cursor IDE (kèm Remote-SSH):** Đóng vai trò làm giao diện hiển thị (thin client).
+* **Antigravity / Claude Code:** Điều khiển và chạy agent trên môi trường Windows.
+* **Trình duyệt web:** Truy cập vào giao diện web của n8n qua địa chỉ IP Tailscale.
 
 ### 3. Trên Client Node 2 (Smartphone)
+* **Tailscale:** App VPN trên thiết bị di động.
+* **Termius (hoặc App SSH):** Kết nối khẩn cấp vào Server để gõ lệnh khi không mang laptop.
+* **Trình duyệt web:** Theo dõi trạng thái và điều khiển n8n.
 
-* **Tailscale:** Ứng dụng Tailscale trên điện thoại.
-* **Termius (hoặc App SSH bất kỳ):** Để SSH vào Lenovo khi đi ra ngoài cần chạy lệnh nhanh.
-* **Trình duyệt web:** Truy cập Web UI n8n để xem trạng thái hoạt động của các agents.
+## Installation & Configuration Guide
+
+Để xem các dòng lệnh cài đặt và cấu hình chi tiết (step-by-step) cho cả 3 thiết bị trên, vui lòng tham khảo sổ tay vận hành cài đặt.
+
+👉 Xem tại file: [SetupRemoteAIWorkerInstallApps.md](SetupRemoteAIWorkerInstallApps.md)
