@@ -22,7 +22,23 @@ sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y
 > 1. **Giải pháp an toàn (Khuyên dùng):** Chờ khoảng 3-5 phút cho tiến trình tự hoàn thành. Bạn có thể kiểm tra trạng thái của nó bằng lệnh: `systemctl status unattended-upgrades`
 > 2. **Giải pháp nhanh:** Dừng tạm thời dịch vụ cập nhật tự động bằng lệnh: `sudo systemctl stop unattended-upgrades`
 
-### 1.2. Cấu hình chống ngủ đông (Prevent Sleep on Lid Close)
+### 1.2. OpenSSH Server
+Cần thiết để cho phép máy Client remote vào.
+```bash
+sudo apt install openssh-server -y
+sudo systemctl enable ssh
+sudo systemctl start ssh
+```
+
+### 1.3. SSH vào từ máy client
+Nếu máy server và client đang ở cùng mạng LAN, nên SSH vào máy server từ máy client để thực hiện các bước tiếp theo. Lấy IP của máy server:
+```bash
+sudo apt install net-tools -y # Install net-tools to use `ifconfig`
+ifconfig # Get IP address of LAN (for example, wlp4s0 for Wifi)
+ssh [YOUR_ACCOUNT]@[IP_ADDRESS]
+```
+
+### 1.4. Cấu hình chống ngủ đông (Prevent Sleep on Lid Close)
 Vì Worker Node là một chiếc laptop Lenovo, ta cần thiết lập để hệ thống không tự động đưa vào trạng thái Sleep khi gập màn hình:
 ```bash
 sudo nano /etc/systemd/logind.conf
@@ -36,15 +52,7 @@ sudo nano /etc/systemd/logind.conf
 sudo systemctl restart systemd-logind.service
 ```
 
-### 1.3. OpenSSH Server
-Cần thiết để cho phép máy Client remote vào.
-```bash
-sudo apt install openssh-server -y
-sudo systemctl enable ssh
-sudo systemctl start ssh
-```
-
-### 1.4. Tailscale (Mạng VPN)
+### 1.5. Tailscale (Mạng VPN)
 Cài đặt Tailscale để tạo mạng nội bộ (VPN) an toàn kết nối các thiết bị.
 ```bash
 curl -fsSL https://tailscale.com/install.sh | sh
@@ -62,7 +70,7 @@ sudo tailscale up
   ```
   Hoặc bạn có thể truy cập trang quản trị [Tailscale Admin Console](https://login.tailscale.com/admin/machines) từ bất kỳ thiết bị nào đã đăng nhập cùng tài khoản để xem IP của thiết bị.
 
-### 1.5. Docker & Docker Compose
+### 1.6. Docker & Docker Compose
 Sử dụng script chính thức để cài đặt nhanh Docker:
 ```bash
 curl -fsSL https://get.docker.com -o get-docker.sh
@@ -73,13 +81,16 @@ sudo usermod -aG docker $USER
 # (Quan trọng: Bạn phải logout ra và login lại SSH để quyền này có hiệu lực)
 ```
 
-### 1.6. Node.js & npm (Môi trường Dev)
+### 1.7. Node.js & npm (Môi trường Dev)
 Sử dụng **fnm (Fast Node Manager)** để cài đặt và quản lý các phiên bản Node.js.
 * **Lý do lựa chọn**:
   * **Tránh lỗi phân quyền (Permission Denied)**: `fnm` cài đặt Node.js trực tiếp trong thư mục `$HOME` (`~/.fnm`). Nhờ đó, khi bạn cài đặt các package global (như Claude CLI/Claude Code) qua `npm install -g`, bạn sẽ không bao giờ cần sử dụng `sudo`, tránh được các xung đột và lỗi bảo mật liên quan đến quyền root của hệ thống.
   * **Quản lý linh hoạt**: `fnm` được phát triển bằng Rust nên cực kỳ nhanh, giúp bạn dễ dàng nâng cấp hoặc chuyển đổi giữa các phiên bản Node.js khác nhau cho từng dự án.
 
 ```bash
+# Cài đặt unzip vì nó cần thiết
+sudo apt install unzip
+
 # Cài đặt fnm
 curl -fsSL https://fnm.vercel.app/install | bash
 
@@ -88,12 +99,13 @@ source ~/.bashrc
 
 # Cài đặt phiên bản Node.js LTS mới nhất
 fnm install --lts
+fnm version # Check version đã được cài đặt
 
 # Thiết lập phiên bản vừa cài làm mặc định (ví dụ: phiên bản 24 vừa tải ở trên)
 fnm default 24
 ```
 
-### 1.7. Claude Code / Claude CLI
+### 1.8. Claude Code / Claude CLI
 Cài đặt công cụ AI CLI toàn cục (không dùng `sudo` nhờ có `fnm` quản lý):
 ```bash
 npm install -g @anthropic-ai/claude-code
@@ -136,6 +148,14 @@ docker compose up -d
 * Tải bản cài đặt cho Windows từ [Tailscale Download](https://tailscale.com/download/windows).
 * Cài đặt và đăng nhập cùng một tài khoản Tailscale đã dùng trên Ubuntu.
 * Lấy địa chỉ IP Tailscale của máy Ubuntu (ví dụ: `100.x.y.z`) để chuẩn bị cho bước SSH.
+
+Sau khi đã cài đặt và login vào Tailscale cùng tài khoản, có thể ssh vào máy ubuntu bằng câu lệnh sau (sử dụng IP Tailscale hoặc host name nếu đã set up):
+
+```bash
+ssh [YOUR_ACCOUNT]@[TAILSCALE_IP_ADDRESS_UBUNTU]
+# hoặc
+ssh [YOUR_ACCOUNT]@[TAILSCALE_HOSTNAME_UBUNTU]
+```
 
 ### 2.2. Cursor IDE & Remote-SSH
 * Tải và cài đặt [Cursor IDE](https://cursor.sh/).
